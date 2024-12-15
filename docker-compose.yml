@@ -1,0 +1,24 @@
+services:
+  secure-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: secure-proxy
+    ports:
+      - "8080:8080" 
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=8080
+    volumes:
+      - .:/usr/src/app
+    networks:
+      - proxy-network
+    restart: unless-stopped
+
+networks:
+  proxy-network:
+    driver: bridge
