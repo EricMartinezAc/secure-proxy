@@ -1,18 +1,20 @@
-const winston = require("winston");
+// src/utils/Logger.js
+import winston from "winston";
 
-class Logger {
-  static getLogger() {
-    if (!Logger.instance) {
-      Logger.instance = winston.createLogger({
-        level: "info",
-        transports: [
-          new winston.transports.Console(),
-          new winston.transports.File({ filename: "app.log" }),
-        ],
-      });
-    }
-    return Logger.instance;
-  }
-}
+// Crear el logger
+const logger = winston.createLogger({
+  level: "info", // El nivel de logs por defecto
+  format: winston.format.combine(
+    winston.format.colorize(),
+    winston.format.timestamp(),
+    winston.format.printf(({ timestamp, level, message }) => {
+      return `${timestamp} ${level}: ${message}`;
+    })
+  ),
+  transports: [
+    new winston.transports.Console(), // Mostrar logs en consola
+    new winston.transports.File({ filename: "logs/combined.log" }), // Guardar logs en archivo
+  ],
+});
 
-module.exports = Logger.getLogger();
+export default logger;

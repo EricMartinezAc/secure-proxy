@@ -1,19 +1,17 @@
-const jwt = require("jsonwebtoken");
-const EnvConfig = require("../config/EnvConfig");
+import jwt from "jsonwebtoken";
+import { ENV } from "../config/EnvConfig.js";
 
-class AuthController {
-  generateToken(user) {
-    const payload = { userId: user.id };
-    return jwt.sign(payload, EnvConfig.get("JWT_SECRET"), { expiresIn: "1h" });
-  }
+export const generateToken = (user) => {
+  return jwt.sign(user, ENV.JWT_SECRET, { expiresIn: "1h" });
+};
 
-  verifyToken(token) {
-    try {
-      return jwt.verify(token, EnvConfig.get("JWT_SECRET"));
-    } catch (error) {
-      throw new Error("Invalid Token");
-    }
-  }
-}
+export const authenticateToken = (req, res, next) => {
+  const token = req.headers["authorization"]?.split(" ")[1];
+  if (!token) return res.sendStatus(403);
 
-module.exports = new AuthController();
+  jwt.verify(token, ENV.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+};

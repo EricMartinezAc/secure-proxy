@@ -1,26 +1,20 @@
-const httpProxy = require("http-proxy");
-const RedisClient = require("../config/RedisClient");
-const logger = require("../utils/Logger");
+import httpProxy from "http-proxy";
+import { redisClient } from "../config/RedisClient.js";
+const proxy = httpProxy.createProxyServer();
 
-class ProxyController {
-  constructor() {
-    this.proxy = httpProxy.createProxyServer({});
-    this.redis = RedisClient.getClient();
-  }
+export const forwardRequest = (req, res) => {
+  const target =
+    process.env.BACKEND_SERVER_URL || "https://api-publica.onrender.com";
 
-  forwardRequest(req, res) {
-    const target = this.getTargetServer(req);
-    this.proxy.web(req, res, { target }, (error) => {
-      logger.error(`Proxy error: ${error.message}`);
-      res.status(500).send("Proxy Error");
+  redisClient.set("lastRequestTime", new Date().toISOString(), (err, reply) => {
+    if (err) {
+      console.error("Error saving to Redis:", err);
+    }
+    proxy.web(req, res, { target }, (err) => {
+      if (err) {
+        console.error("Error in proxying request:", err);
+        res.status(500).send("Internal Server Error");
+      }
     });
-  }
-
-  getTargetServer(req) {
-    // Balanceo de carga y lógica personalizada
-    // Aquí se puede usar Redis para almacenar y recuperar servidores activos
-    return "http://backend_server"; // Reemplaza con la lógica de backend
-  }
-}
-
-module.exports = new ProxyController();
+  });
+};

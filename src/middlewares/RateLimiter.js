@@ -1,13 +1,9 @@
-const rateLimit = require("express-rate-limit");
-const RedisClient = require("../config/RedisClient");
+import rateLimit from "express-rate-limit";
 
 const limiter = rateLimit({
-  store: new RedisStore({
-    client: RedisClient.getClient(),
-  }),
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // Limita a 100 solicitudes por IP
-  message: "Too many requests, please try again later",
+  windowMs: 15 * 60 * 1000,
+  max: 100, // 100 peticiones por cada 15 minutos
+  message: "Too many requests, please try again later.",
 });
 
-module.exports = limiter;
+export default limiter;
